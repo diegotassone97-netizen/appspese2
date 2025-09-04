@@ -80,7 +80,7 @@
                     <p class="text-indigo-600 text-lg">Saldo Totale</p>
                     <p id="saldo-totale" class="text-indigo-800 text-2xl mt-1">- €0.00</p>
                 </div>
-                </div>
+            </div>
         </div>
         
         <div class="card">
@@ -134,6 +134,14 @@
                 <p id="no-expenses" class="text-gray-500 text-center">Nessuna spesa registrata.</p>
             </div>
         </div>
+
+        <div class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Storico Pagamenti</h2>
+            <div id="payments-history" class="space-y-4">
+                <p id="no-payments" class="text-gray-500 text-center">Nessun pagamento registrato.</p>
+            </div>
+        </div>
+        
         <div class="mt-4 text-center text-gray-500">
             <p>ID utente: <span id="user-id" class="font-mono text-xs"></span></p>
         </div>
@@ -141,33 +149,23 @@
     </div>
 
     <script type="module">
-        // Importa i moduli necessari da Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
         
-        // ATTENZIONE: SOSTITUISCI QUESTI VALORI CON LE TUE CREDENZIALI FIREBASE
-        const firebaseConfig = {
-  apiKey: "AIzaSyAo40exxMQSGZcV8FgnF7XwrmDNDs-e1lY",
-  authDomain: "appspese2.firebaseapp.com",
-  projectId: "appspese2",
-  storageBucket: "appspese2.firebasestorage.app",
-  messagingSenderId: "20924314267",
-  appId: "1:20924314267:web:500dc7f170ce0b68e24c3e",
-  measurementId: "G-J677Z3X6QY"
-};
-        
-        // ATTENZIONE: SOSTITUISCI QUESTO VALORE CON L'ID DEL TUO PROGETTO
-        const appId = "1:20924314267:web:500dc7f170ce0b68e24c3e";
+        // Impostiamo il livello di log per il debug
+        setLogLevel('debug');
         
         let db;
         let auth;
         let userId;
         let expensesCollection;
+        let paymentsCollection;
         let expensesData = [];
-        let isAuthReady = false;
-
-        // UI elements and functions
+        let paymentsData = [];
+        
+        // Elementi UI e funzioni di utilità
         const showLoading = () => document.getElementById('loading-spinner').classList.remove('hidden');
         const hideLoading = () => document.getElementById('loading-spinner').classList.add('hidden');
         const showMessage = (text, type = 'success') => {
@@ -187,8 +185,10 @@
         const expenseForm = document.getElementById('expense-form');
         const paymentForm = document.getElementById('payment-form');
         const expensesList = document.getElementById('expenses-list');
+        const paymentsHistory = document.getElementById('payments-history');
         const paymentExpenseSelect = document.getElementById('payment-expense');
         const noExpensesMessage = document.getElementById('no-expenses');
+        const noPaymentsMessage = document.getElementById('no-payments');
         const userIdEl = document.getElementById('user-id');
         
         // Funzione per calcolare e aggiornare i saldi
@@ -203,17 +203,23 @@
                 const half = total / 2;
                 totalDueDiego += half;
                 totalDueLisa += half;
-                totalSpentDiego += expense.pagatoDiego;
-                totalSpentLisa += expense.pagatoLisa;
+            });
+
+            paymentsData.forEach(payment => {
+                if (payment.payer === 'Diego') {
+                    totalSpentDiego += parseFloat(payment.amount);
+                } else if (payment.payer === 'Lisa') {
+                    totalSpentLisa += parseFloat(payment.amount);
+                }
             });
 
             const saldoDiego = totalSpentDiego - totalDueDiego;
             const saldoLisa = totalSpentLisa - totalDueLisa;
-            const saldoTotale = saldoDiego + saldoLisa; // Calcolo del saldo totale
+            const saldoTotale = saldoDiego + saldoLisa;
             
             const saldoDiegoEl = document.getElementById('saldo-diego');
             const saldoLisaEl = document.getElementById('saldo-lisa');
-            const saldoTotaleEl = document.getElementById('saldo-totale'); // Nuovo elemento per il saldo totale
+            const saldoTotaleEl = document.getElementById('saldo-totale');
 
             saldoDiegoEl.textContent = `${saldoDiego >= 0 ? '+' : ''} €${saldoDiego.toFixed(2)}`;
             saldoDiegoEl.parentElement.classList.toggle('bg-red-100', saldoDiego < 0);
@@ -227,7 +233,6 @@
             saldoLisaEl.classList.toggle('text-red-800', saldoLisa < 0);
             saldoLisaEl.classList.toggle('text-green-800', saldoLisa >= 0);
 
-            // Aggiornamento del nuovo div del saldo totale
             saldoTotaleEl.textContent = `${saldoTotale >= 0 ? '+' : ''} €${saldoTotale.toFixed(2)}`;
             saldoTotaleEl.parentElement.classList.toggle('bg-red-100', saldoTotale < 0);
             saldoTotaleEl.parentElement.classList.toggle('bg-green-100', saldoTotale >= 0);
@@ -240,8 +245,18 @@
         // Funzione per aggiornare la lista delle spese nel DOM
         const updateExpensesList = () => {
             expensesList.innerHTML = '';
-            // Ordina i dati in memoria per evitare problemi di indicizzazione con Firestore
             expensesData.sort((a, b) => b.createdAt - a.createdAt).forEach(expense => {
+                // Calcola l'importo pagato per questa spesa specifica, basandosi sullo storico dei pagamenti
+                const paidDiego = paymentsData
+                    .filter(p => p.expenseId === expense.id && p.payer === 'Diego')
+                    .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+                
+                const paidLisa = paymentsData
+                    .filter(p => p.expenseId === expense.id && p.payer === 'Lisa')
+                    .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+                
+                const remaining = expense.totale - (paidDiego + paidLisa);
+
                 const expenseElement = document.createElement('div');
                 expenseElement.className = 'p-6 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
                 expenseElement.innerHTML = `
@@ -251,12 +266,33 @@
                     </div>
                     <p class="text-sm text-gray-500 mb-4">${expense.note || 'Nessuna nota'}</p>
                     <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-                        <p>Pagato da Diego: <span class="font-medium text-green-700">€${expense.pagatoDiego.toFixed(2)}</span></p>
-                        <p>Pagato da Lisa: <span class="font-medium text-green-700">€${expense.pagatoLisa.toFixed(2)}</span></p>
-                        <p>Residuo: <span class="font-bold ${expense.residuo > 0 ? 'text-red-700' : 'text-green-700'}">€${expense.residuo.toFixed(2)}</span></p>
+                        <p>Pagato da Diego: <span class="font-medium text-green-700">€${paidDiego.toFixed(2)}</span></p>
+                        <p>Pagato da Lisa: <span class="font-medium text-green-700">€${paidLisa.toFixed(2)}</span></p>
+                        <p>Residuo: <span class="font-bold ${remaining > 0 ? 'text-red-700' : 'text-green-700'}">€${remaining.toFixed(2)}</span></p>
                     </div>
                 `;
                 expensesList.appendChild(expenseElement);
+            });
+        };
+        
+        // Funzione per aggiornare la lista dei pagamenti nel DOM
+        const updatePaymentsHistory = () => {
+            paymentsHistory.innerHTML = '';
+            paymentsData.sort((a, b) => b.createdAt - a.createdAt).forEach(payment => {
+                const paymentElement = document.createElement('div');
+                paymentElement.className = 'p-4 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
+                const relatedExpense = expensesData.find(e => e.id === payment.expenseId);
+                const expenseName = relatedExpense ? relatedExpense.nome : 'Spesa eliminata';
+                const date = new Date(payment.createdAt).toLocaleDateString('it-IT');
+
+                paymentElement.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <p class="text-gray-800 font-semibold">${payment.payer} ha pagato €${parseFloat(payment.amount).toFixed(2)}</p>
+                        <span class="text-sm text-gray-500">${date}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Spesa di riferimento: <span class="font-medium">${expenseName}</span></p>
+                `;
+                paymentsHistory.appendChild(paymentElement);
             });
         };
 
@@ -273,128 +309,146 @@
 
         const updateUI = () => {
             updateExpensesList();
+            updatePaymentsHistory();
             updatePaymentSelect();
             calculateBalances();
             noExpensesMessage.classList.toggle('hidden', expensesData.length > 0);
+            noPaymentsMessage.classList.toggle('hidden', paymentsData.length > 0);
         };
         
-        // Gestisce l'invio del modulo di aggiunta spesa
-        expenseForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            showLoading();
-            const name = document.getElementById('expense-name').value;
-            const total = parseFloat(document.getElementById('expense-total').value);
-            const notes = document.getElementById('expense-notes').value;
-            
-            const newExpense = {
-                nome: name,
-                totale: total,
-                note: notes,
-                pagatoDiego: 0,
-                pagatoLisa: 0,
-                residuo: total,
-                createdAt: Date.now()
-            };
-
-            try {
-                // Usa la collezione del percorso corretto
-                await addDoc(expensesCollection, newExpense);
-                showMessage("Spesa registrata con successo!");
-                expenseForm.reset();
-            } catch (e) {
-                console.error("Errore nell'aggiungere il documento: ", e);
-                showMessage("Errore nella registrazione della spesa.", 'error');
-            } finally {
-                hideLoading();
-            }
-        });
-
-        // Gestisce l'invio del modulo di pagamento
-        paymentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            showLoading();
-            const expenseId = document.getElementById('payment-expense').value;
-            const payer = document.getElementById('payment-payer').value;
-            const amount = parseFloat(document.getElementById('payment-amount').value);
-            
-            if (!expenseId) {
-                showMessage("Seleziona una spesa.", 'error');
-                hideLoading();
-                return;
-            }
-
-            const expenseToUpdate = expensesData.find(exp => exp.id === expenseId);
-            if (!expenseToUpdate) {
-                showMessage("Spesa non trovata.", 'error');
-                hideLoading();
-                return;
-            }
-
-            let newPagatoDiego = expenseToUpdate.pagatoDiego;
-            let newPagatoLisa = expenseToUpdate.pagatoLisa;
-
-            if (payer === 'Diego') {
-                newPagatoDiego += amount;
-            } else if (payer === 'Lisa') {
-                newPagatoLisa += amount;
-            }
-            
-            const newResiduo = expenseToUpdate.totale - (newPagatoDiego + newPagatoLisa);
-            
-            try {
-                // Usa la collezione e il percorso del documento corretti
-                const expenseRef = doc(expensesCollection, expenseId);
-                await updateDoc(expenseRef, {
-                    pagatoDiego: newPagatoDiego,
-                    pagatoLisa: newPagatoLisa,
-                    residuo: newResiduo
-                });
-                showMessage("Pagamento registrato con successo!");
-                paymentForm.reset();
-            } catch (e) {
-                console.error("Errore nell'aggiornare il documento: ", e);
-                showMessage("Errore nella registrazione del pagamento.", 'error');
-            } finally {
-                hideLoading();
-            }
-        });
-
         // Funzione di inizializzazione che gestisce l'autenticazione e i listener
         async function initFirebase() {
             try {
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+                    console.error("Errore di configurazione: La configurazione di Firebase è mancante.");
+                    showMessage("Errore di configurazione. Controlla la console per i dettagli.", 'error');
+                    return; 
+                }
+
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                console.log("Firebase Auth e Firestore inizializzati con successo.");
                 
-                // Gestisce lo stato di autenticazione dell'utente
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                         userIdEl.textContent = userId;
-                        // Imposta il percorso della collezione con l'ID del progetto
                         expensesCollection = collection(db, "artifacts", appId, "public", "data", "spese");
-                        isAuthReady = true;
-                        
-                        // Listener in tempo reale per gli aggiornamenti del database
+                        paymentsCollection = collection(db, "artifacts", appId, "public", "data", "pagamenti");
+                        console.log("Autenticazione riuscita. ID utente:", userId);
+
                         onSnapshot(expensesCollection, (querySnapshot) => {
                             const tempExpensesData = [];
                             querySnapshot.forEach((doc) => {
                                 tempExpensesData.push({ id: doc.id, ...doc.data() });
                             });
                             expensesData = tempExpensesData;
-                            console.log("Dati aggiornati da Firestore.");
+                            console.log("Dati spese aggiornati da Firestore.");
                             updateUI();
                         }, (error) => {
-                            console.error("Errore nel listener dello snapshot: ", error);
+                            console.error("Errore nel listener dello snapshot spese: ", error);
                             showMessage("Errore di caricamento dei dati: " + error.message, 'error');
                         });
+
+                        onSnapshot(paymentsCollection, (querySnapshot) => {
+                            const tempPaymentsData = [];
+                            querySnapshot.forEach((doc) => {
+                                tempPaymentsData.push({ id: doc.id, ...doc.data() });
+                            });
+                            paymentsData = tempPaymentsData;
+                            console.log("Dati pagamenti aggiornati da Firestore.");
+                            updateUI();
+                        }, (error) => {
+                            console.error("Errore nel listener dello snapshot pagamenti: ", error);
+                            showMessage("Errore di caricamento dei dati: " + error.message, 'error');
+                        });
+                        
                     } else {
-                        // Se non c'è un utente, esegui l'accesso in modo anonimo
                         try {
-                            await signInAnonymously(auth);
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
                         } catch (error) {
                             console.error("Errore durante l'autenticazione:", error);
                         }
+                    }
+                });
+
+                // Gestori degli eventi
+                expenseForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!expensesCollection) {
+                        console.error("Collezione spese non disponibile.");
+                        showMessage("App non ancora pronta. Riprova tra poco.", 'error');
+                        return;
+                    }
+                    showLoading();
+                    const name = document.getElementById('expense-name').value;
+                    const total = parseFloat(document.getElementById('expense-total').value);
+                    const notes = document.getElementById('expense-notes').value;
+                    
+                    const newExpense = {
+                        nome: name,
+                        totale: total,
+                        note: notes,
+                        createdAt: Date.now()
+                    };
+        
+                    try {
+                        await addDoc(expensesCollection, newExpense);
+                        showMessage("Spesa registrata con successo!");
+                        expenseForm.reset();
+                    } catch (e) {
+                        console.error("Errore nell'aggiungere il documento: ", e);
+                        showMessage("Errore nella registrazione della spesa.", 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                });
+        
+                paymentForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!expensesCollection || !paymentsCollection) {
+                        console.error("Collezione pagamenti non disponibile.");
+                        showMessage("App non ancora pronta. Riprova tra poco.", 'error');
+                        return;
+                    }
+                    showLoading();
+                    const expenseId = document.getElementById('payment-expense').value;
+                    const date = document.getElementById('payment-date').value;
+                    const payer = document.getElementById('payment-payer').value;
+                    const amount = parseFloat(document.getElementById('payment-amount').value);
+                    
+                    if (!expenseId) {
+                        showMessage("Seleziona una spesa.", 'error');
+                        hideLoading();
+                        return;
+                    }
+        
+                    const newPayment = {
+                        expenseId: expenseId,
+                        date: date,
+                        payer: payer,
+                        amount: amount,
+                        createdAt: Date.now()
+                    };
+                    
+                    try {
+                        await addDoc(paymentsCollection, newPayment);
+                        showMessage("Pagamento registrato con successo!");
+                        paymentForm.reset();
+                    } catch (e) {
+                        console.error("Errore nell'aggiungere il documento: ", e);
+                        showMessage("Errore nella registrazione del pagamento.", 'error');
+                    } finally {
+                        hideLoading();
                     }
                 });
             } catch (error) {
@@ -402,8 +456,8 @@
             }
         }
 
-        // Avvia il processo di inizializzazione quando la pagina è caricata
         window.onload = initFirebase;
     </script>
 </body>
 </html>
+
