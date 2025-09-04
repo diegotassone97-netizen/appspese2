@@ -388,6 +388,9 @@
                             }
                         } catch (error) {
                             console.error("Errore durante l'autenticazione:", error);
+                            showMessage("Errore di autenticazione. Controlla la console per i dettagli.", 'error');
+                            // Importante: non procedere oltre se l'autenticazione fallisce
+                            return; 
                         }
                     }
                 });
@@ -472,6 +475,7 @@
     </script>
 </body>
 </html>
+
 
 
 
