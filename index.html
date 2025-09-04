@@ -199,7 +199,7 @@
             let totalDueLisa = 0;
             
             expensesData.forEach(expense => {
-                const total = parseFloat(expense.totale || 0); // Correzione
+                const total = parseFloat(expense.totale || 0);
                 const half = total / 2;
                 totalDueDiego += half;
                 totalDueLisa += half;
@@ -207,9 +207,9 @@
 
             paymentsData.forEach(payment => {
                 if (payment.payer === 'Diego') {
-                    totalSpentDiego += parseFloat(payment.amount || 0); // Correzione
+                    totalSpentDiego += parseFloat(payment.amount || 0);
                 } else if (payment.payer === 'Lisa') {
-                    totalSpentLisa += parseFloat(payment.amount || 0); // Correzione
+                    totalSpentLisa += parseFloat(payment.amount || 0);
                 }
             });
 
@@ -221,19 +221,19 @@
             const saldoLisaEl = document.getElementById('saldo-lisa');
             const saldoTotaleEl = document.getElementById('saldo-totale');
 
-            saldoDiegoEl.textContent = `${saldoDiego >= 0 ? '+' : ''} €${(saldoDiego || 0).toFixed(2)}`; // Correzione
+            saldoDiegoEl.textContent = `${saldoDiego >= 0 ? '+' : ''} €${(saldoDiego || 0).toFixed(2)}`;
             saldoDiegoEl.parentElement.classList.toggle('bg-red-100', saldoDiego < 0);
             saldoDiegoEl.parentElement.classList.toggle('bg-green-100', saldoDiego >= 0);
             saldoDiegoEl.classList.toggle('text-red-800', saldoDiego < 0);
             saldoDiegoEl.classList.toggle('text-green-800', saldoDiego >= 0);
 
-            saldoLisaEl.textContent = `${saldoLisa >= 0 ? '+' : ''} €${(saldoLisa || 0).toFixed(2)}`; // Correzione
+            saldoLisaEl.textContent = `${saldoLisa >= 0 ? '+' : ''} €${(saldoLisa || 0).toFixed(2)}`;
             saldoLisaEl.parentElement.classList.toggle('bg-red-100', saldoLisa < 0);
             saldoLisaEl.parentElement.classList.toggle('bg-green-100', saldoLisa >= 0);
             saldoLisaEl.classList.toggle('text-red-800', saldoLisa < 0);
             saldoLisaEl.classList.toggle('text-green-800', saldoLisa >= 0);
 
-            saldoTotaleEl.textContent = `${saldoTotale >= 0 ? '+' : ''} €${(saldoTotale || 0).toFixed(2)}`; // Correzione
+            saldoTotaleEl.textContent = `${saldoTotale >= 0 ? '+' : ''} €${(saldoTotale || 0).toFixed(2)}`;
             saldoTotaleEl.parentElement.classList.toggle('bg-red-100', saldoTotale < 0);
             saldoTotaleEl.parentElement.classList.toggle('bg-green-100', saldoTotale >= 0);
             saldoTotaleEl.classList.toggle('text-red-800', saldoTotale < 0);
@@ -255,7 +255,7 @@
                     .filter(p => p.expenseId === expense.id && p.payer === 'Lisa')
                     .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
                 
-                const expenseTotal = parseFloat(expense.totale || 0); // Correzione
+                const expenseTotal = parseFloat(expense.totale || 0);
                 const remaining = expenseTotal - (paidDiego + paidLisa);
 
                 const expenseElement = document.createElement('div');
@@ -303,7 +303,7 @@
             expensesData.forEach(expense => {
                 const option = document.createElement('option');
                 option.value = expense.id;
-                option.textContent = `${expense.nome} (€${(parseFloat(expense.totale || 0)).toFixed(2)})`; // Correzione
+                option.textContent = `${expense.nome} (€${(parseFloat(expense.totale || 0)).toFixed(2)})`;
                 paymentExpenseSelect.appendChild(option);
             });
         };
@@ -319,17 +319,27 @@
         
         // Funzione di inizializzazione che gestisce l'autenticazione e i listener
         async function initFirebase() {
+            let firebaseConfig;
             try {
-                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                // Tenta di analizzare la configurazione di Firebase
+                const configString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+                firebaseConfig = JSON.parse(configString);
+            } catch (error) {
+                console.error("Errore di configurazione: La configurazione di Firebase non è un JSON valido.", error);
+                showMessage("Errore di configurazione. Controlla la console per i dettagli.", 'error');
+                return;
+            }
+
+            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+                console.error("Errore di configurazione: La configurazione di Firebase è mancante.");
+                showMessage("Errore di configurazione. Controlla la console per i dettagli.", 'error');
+                return; 
+            }
+
+            try {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-                if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
-                    console.error("Errore di configurazione: La configurazione di Firebase è mancante.");
-                    showMessage("Errore di configurazione. Controlla la console per i dettagli.", 'error');
-                    return; 
-                }
-
+                
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -454,6 +464,7 @@
                 });
             } catch (error) {
                 console.error("Errore nell'inizializzazione di Firebase:", error);
+                showMessage("Errore di inizializzazione. Controlla la console per i dettagli.", 'error');
             }
         }
 
@@ -462,6 +473,5 @@
 </body>
 </html>
 
-</html>
 
 
