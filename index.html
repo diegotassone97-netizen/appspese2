@@ -8,7 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -36,19 +38,6 @@
       background-color: #4338ca;
     }
 
-    .btn-secondary {
-      background-color: #e5e7eb;
-      color: #4b5563;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 500;
-      transition: background-color 0.3s;
-    }
-
-    .btn-secondary:hover {
-      background-color: #d1d5db;
-    }
-
     .card {
       background-color: white;
       border-radius: 12px;
@@ -60,23 +49,27 @@
 
 <body class="p-6 md:p-12">
 
+  <!-- Spinner caricamento -->
   <div id="loading-spinner"
     class="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50 hidden">
-    <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-      viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg"
+      fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10"
+        stroke="currentColor" stroke-width="4"></circle>
       <path class="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-      </path>
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 
+        0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
   </div>
 
   <div class="max-w-4xl mx-auto space-y-8">
+    <!-- Header -->
     <div class="card text-center">
       <h1 class="text-3xl font-bold text-gray-800 mb-2">Gestione Spese Condivise</h1>
       <p class="text-gray-500">Traccia e bilancia le spese con facilità.</p>
     </div>
 
+    <!-- Riepilogo Saldi -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-4">Riepilogo Saldi</h2>
       <div class="flex flex-col md:flex-row gap-4 justify-around text-center font-semibold">
@@ -95,6 +88,7 @@
       </div>
     </div>
 
+    <!-- Aggiungi Spesa -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-6">Aggiungi Nuova Spesa</h2>
       <form id="expense-form" class="space-y-4">
@@ -114,6 +108,7 @@
       </form>
     </div>
 
+    <!-- Registra Pagamento -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-6">Registra Pagamento</h2>
       <form id="payment-form" class="space-y-4">
@@ -140,6 +135,7 @@
       </form>
     </div>
 
+    <!-- Elenco Spese -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-4">Elenco Spese</h2>
       <div id="expenses-list" class="space-y-4">
@@ -147,6 +143,7 @@
       </div>
     </div>
 
+    <!-- Storico Pagamenti -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-4">Storico Pagamenti</h2>
       <div id="payments-history-list" class="space-y-4">
@@ -157,41 +154,51 @@
     <div id="message-container" class="fixed bottom-6 right-6 z-50 w-80"></div>
   </div>
 
-  <!-- Script di Firebase -->
+  <!-- Script Firebase -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, onSnapshot,
-      query, doc, updateDoc, orderBy, serverTimestamp
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      updateDoc,
+      onSnapshot,
+      query,
+      doc,
+      orderBy,
+      serverTimestamp,
+      Timestamp
     } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-    // Configurazione Firebase corretta
+    // Config Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAo40exxMQSGZcV8FgnF7XwrmDNDs-e1lY",
       authDomain: "appspese2.firebaseapp.com",
       projectId: "appspese2",
-      storageBucket: "appspese2.appspot.com", // ✅ CORRETTO
+      storageBucket: "appspese2.appspot.com", // ✅ corretto
       messagingSenderId: "20924314267",
       appId: "1:20924314267:web:500dc7f170ce0b68e24c3e",
       measurementId: "G-J677Z3X6QY"
     };
 
-    // Inizializza Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Riferimenti alle collezioni
+    // Collezioni
     const expensesCollection = collection(db, "spese");
     const paymentsCollection = collection(db, "pagamenti");
 
-    // Funzioni UI
+    // Utility UI
     const showLoading = () => document.getElementById('loading-spinner').classList.remove('hidden');
     const hideLoading = () => document.getElementById('loading-spinner').classList.add('hidden');
 
     const showMessage = (text, type = 'success') => {
       const container = document.getElementById('message-container');
       const messageDiv = document.createElement('div');
-      messageDiv.className = `p-4 mb-4 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} transition-transform transform translate-x-full`;
+      messageDiv.className =
+        `p-4 mb-4 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} transition-transform transform translate-x-full`;
       messageDiv.textContent = text;
       container.appendChild(messageDiv);
 
@@ -202,6 +209,7 @@
       }, 5000);
     };
 
+    // Riferimenti form/elementi
     const expenseForm = document.getElementById('expense-form');
     const paymentForm = document.getElementById('payment-form');
     const expensesList = document.getElementById('expenses-list');
@@ -213,7 +221,7 @@
     let expensesData = [];
     let paymentsData = [];
 
-    // Calcola i saldi
+    // Calcolo saldi
     const calculateBalances = () => {
       let totalSpentDiego = 0;
       let totalSpentLisa = 0;
@@ -242,31 +250,15 @@
       const saldoDiego = totalSpentDiego - totalDueDiego;
       const saldoLisa = totalSpentLisa - totalDueLisa;
 
-      const saldoDiegoEl = document.getElementById('saldo-diego');
-      const saldoLisaEl = document.getElementById('saldo-lisa');
-      const totalDueAllEl = document.getElementById('total-due-all');
-
-      saldoDiegoEl.textContent = `${saldoDiego >= 0 ? '+' : ''} €${saldoDiego.toFixed(2)}`;
-      saldoDiegoEl.parentElement.classList.toggle('bg-red-100', saldoDiego < 0);
-      saldoDiegoEl.parentElement.classList.toggle('bg-green-100', saldoDiego >= 0);
-      saldoDiegoEl.classList.toggle('text-red-800', saldoDiego < 0);
-      saldoDiegoEl.classList.toggle('text-green-800', saldoDiego >= 0);
-
-      saldoLisaEl.textContent = `${saldoLisa >= 0 ? '+' : ''} €${saldoLisa.toFixed(2)}`;
-      saldoLisaEl.parentElement.classList.toggle('bg-red-100', saldoLisa < 0);
-      saldoLisaEl.parentElement.classList.toggle('bg-green-100', saldoLisa >= 0);
-      saldoLisaEl.classList.toggle('text-red-800', saldoLisa < 0);
-      saldoLisaEl.classList.toggle('text-green-800', saldoLisa >= 0);
-
-      totalDueAllEl.textContent = `€${totalRemaining.toFixed(2)}`;
-      totalDueAllEl.classList.toggle('text-red-600', totalRemaining > 0);
-      totalDueAllEl.classList.toggle('text-green-600', totalRemaining <= 0);
+      document.getElementById('saldo-diego').textContent = `${saldoDiego >= 0 ? '+' : ''} €${saldoDiego.toFixed(2)}`;
+      document.getElementById('saldo-lisa').textContent = `${saldoLisa >= 0 ? '+' : ''} €${saldoLisa.toFixed(2)}`;
+      document.getElementById('total-due-all').textContent = `€${totalRemaining.toFixed(2)}`;
     };
 
     // Aggiorna lista spese
     const updateExpensesList = () => {
       expensesList.innerHTML = '';
-      expensesData.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).forEach(expense => {
+      expensesData.forEach(expense => {
         const expenseElement = document.createElement('div');
         expenseElement.className = 'p-6 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
         expenseElement.innerHTML = `
@@ -285,22 +277,22 @@
       });
     };
 
-    // Aggiorna lista pagamenti
+    // Aggiorna storico pagamenti
     const updatePaymentsHistory = () => {
       paymentsHistoryList.innerHTML = '';
-      paymentsData.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).forEach(payment => {
+      paymentsData.forEach(payment => {
         const paymentElement = document.createElement('div');
         paymentElement.className = 'p-4 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
         paymentElement.innerHTML = `
           <p class="text-base text-gray-800 font-medium">${payment.payer} ha pagato €${payment.amount.toFixed(2)}</p>
           <p class="text-sm text-gray-600 mt-1">Spesa di riferimento: ${payment.expenseName}</p>
-          <p class="text-xs text-gray-500 mt-1">Data: ${payment.createdAt ? payment.createdAt.toDate().toLocaleDateString() : '-'}</p>
+          <p class="text-xs text-gray-500 mt-1">Data: ${payment.operazioneData ? payment.operazioneData.toDate().toLocaleDateString() : "-"}</p>
         `;
         paymentsHistoryList.appendChild(paymentElement);
       });
     };
 
-    // Aggiorna select pagamenti
+    // Aggiorna select pagamento
     const updatePaymentSelect = () => {
       paymentExpenseSelect.innerHTML = '';
       expensesData.forEach(expense => {
@@ -313,14 +305,14 @@
 
     const updateUI = () => {
       updateExpensesList();
-      updatePaymentSelect();
       updatePaymentsHistory();
+      updatePaymentSelect();
       calculateBalances();
       noExpensesMessage.classList.toggle('hidden', expensesData.length > 0);
       noPaymentsMessage.classList.toggle('hidden', paymentsData.length > 0);
     };
 
-    // Form nuova spesa
+    // Submit nuova spesa
     expenseForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       showLoading();
@@ -335,7 +327,7 @@
         pagatoDiego: 0,
         pagatoLisa: 0,
         residuo: total,
-        createdAt: serverTimestamp() // ✅
+        createdAt: serverTimestamp()
       };
 
       try {
@@ -343,14 +335,14 @@
         showMessage("Spesa registrata con successo!");
         expenseForm.reset();
       } catch (e) {
-        console.error("Errore nell'aggiungere la spesa: ", e);
+        console.error("Errore aggiunta spesa: ", e);
         showMessage("Errore nella registrazione della spesa.", 'error');
       } finally {
         hideLoading();
       }
     });
 
-    // Form nuovo pagamento
+    // Submit pagamento
     paymentForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       showLoading();
@@ -358,12 +350,6 @@
       const payer = document.getElementById('payment-payer').value;
       const amount = parseFloat(document.getElementById('payment-amount').value);
       const date = document.getElementById('payment-date').value;
-
-      if (!expenseId) {
-        showMessage("Seleziona una spesa.", 'error');
-        hideLoading();
-        return;
-      }
 
       const expenseToUpdate = expensesData.find(exp => exp.id === expenseId);
       if (!expenseToUpdate) {
@@ -375,11 +361,8 @@
       let newPagatoDiego = expenseToUpdate.pagatoDiego;
       let newPagatoLisa = expenseToUpdate.pagatoLisa;
 
-      if (payer === 'Diego') {
-        newPagatoDiego += amount;
-      } else if (payer === 'Lisa') {
-        newPagatoLisa += amount;
-      }
+      if (payer === 'Diego') newPagatoDiego += amount;
+      else if (payer === 'Lisa') newPagatoLisa += amount;
 
       const newResiduo = expenseToUpdate.totale - (newPagatoDiego + newPagatoLisa);
 
@@ -391,26 +374,28 @@
           residuo: newResiduo
         });
 
+        // Salvo pagamento con data inserita
+        const operazioneDate = Timestamp.fromDate(new Date(date));
         await addDoc(paymentsCollection, {
-          expenseId: expenseId,
+          expenseId,
           expenseName: expenseToUpdate.nome,
-          payer: payer,
-          amount: amount,
-          date: date,
-          createdAt: serverTimestamp() // ✅
+          payer,
+          amount,
+          operazioneData: operazioneDate,
+          createdAt: serverTimestamp()
         });
 
         showMessage("Pagamento registrato con successo!");
         paymentForm.reset();
       } catch (e) {
-        console.error("Errore nell'aggiungere il pagamento: ", e);
+        console.error("Errore registrazione pagamento: ", e);
         showMessage("Errore nella registrazione del pagamento.", 'error');
       } finally {
         hideLoading();
       }
     });
 
-    // Listener Firestore
+    // Listener spese
     const qExpenses = query(expensesCollection, orderBy("createdAt", "desc"));
     onSnapshot(qExpenses, (querySnapshot) => {
       const tempExpensesData = [];
@@ -421,7 +406,8 @@
       updateUI();
     });
 
-    const qPayments = query(paymentsCollection, orderBy("createdAt", "desc"));
+    // Listener pagamenti (ordinati per data operazione)
+    const qPayments = query(paymentsCollection, orderBy("operazioneData", "desc"));
     onSnapshot(qPayments, (querySnapshot) => {
       const tempPaymentsData = [];
       querySnapshot.forEach((doc) => {
@@ -433,6 +419,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
