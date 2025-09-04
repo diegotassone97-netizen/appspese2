@@ -164,6 +164,7 @@
         let paymentsCollection;
         let expensesData = [];
         let paymentsData = [];
+        let authReady = false;
         
         // Elementi UI e funzioni di utilità
         const showLoading = () => document.getElementById('loading-spinner').classList.remove('hidden');
@@ -319,20 +320,22 @@
         
         // Funzione di inizializzazione che gestisce l'autenticazione e i listener
         async function initFirebase() {
+            showLoading();
             let firebaseConfig;
             try {
-                // Tenta di analizzare la configurazione di Firebase
                 const configString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
                 firebaseConfig = JSON.parse(configString);
             } catch (error) {
                 console.error("Errore di configurazione: La configurazione di Firebase non è un JSON valido.", error);
                 showMessage("Errore di configurazione. Controlla la console per i dettagli.", 'error');
+                hideLoading();
                 return;
             }
 
             if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
                 console.error("Errore di configurazione: La configurazione di Firebase è mancante.");
                 showMessage("Errore di configurazione. Controlla la console per i dettagli.", 'error');
+                hideLoading();
                 return; 
             }
 
@@ -343,7 +346,6 @@
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                console.log("Firebase Auth e Firestore inizializzati con successo.");
                 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
@@ -351,8 +353,11 @@
                         userIdEl.textContent = userId;
                         expensesCollection = collection(db, "artifacts", appId, "public", "data", "spese");
                         paymentsCollection = collection(db, "artifacts", appId, "public", "data", "pagamenti");
-                        console.log("Autenticazione riuscita. ID utente:", userId);
-
+                        authReady = true;
+                        hideLoading();
+                        showMessage("Connesso con successo!", 'success');
+                        
+                        // Attiva i listener solo dopo che l'autenticazione è completa
                         onSnapshot(expensesCollection, (querySnapshot) => {
                             const tempExpensesData = [];
                             querySnapshot.forEach((doc) => {
@@ -389,18 +394,16 @@
                         } catch (error) {
                             console.error("Errore durante l'autenticazione:", error);
                             showMessage("Errore di autenticazione. Controlla la console per i dettagli.", 'error');
-                            // Importante: non procedere oltre se l'autenticazione fallisce
-                            return; 
+                            hideLoading();
                         }
                     }
                 });
 
-                // Gestori degli eventi
+                // Gestori degli eventi - Aggiungi un controllo di stato
                 expenseForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    if (!expensesCollection) {
-                        console.error("Collezione spese non disponibile.");
-                        showMessage("App non ancora pronta. Riprova tra poco.", 'error');
+                    if (!authReady) {
+                        showMessage("L'app non è ancora connessa. Attendi qualche istante.", 'error');
                         return;
                     }
                     showLoading();
@@ -429,9 +432,8 @@
         
                 paymentForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    if (!expensesCollection || !paymentsCollection) {
-                        console.error("Collezione pagamenti non disponibile.");
-                        showMessage("App non ancora pronta. Riprova tra poco.", 'error');
+                    if (!authReady) {
+                        showMessage("L'app non è ancora connessa. Attendi qualche istante.", 'error');
                         return;
                     }
                     showLoading();
@@ -468,6 +470,7 @@
             } catch (error) {
                 console.error("Errore nell'inizializzazione di Firebase:", error);
                 showMessage("Errore di inizializzazione. Controlla la console per i dettagli.", 'error');
+                hideLoading();
             }
         }
 
@@ -475,6 +478,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
