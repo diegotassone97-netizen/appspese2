@@ -10,70 +10,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      box-sizing: border-box;
-    }
-
-    .btn-primary {
-      background-color: #4f46e5;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: background-color 0.3s;
-    }
-
-    .btn-primary:hover {
-      background-color: #4338ca;
-    }
-
-    .card {
-      background-color: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-delete {
-      margin-top: 0.5rem;
-      color: #ef4444;
-      font-size: 0.875rem;
-      cursor: pointer;
-    }
-
-    .btn-delete:hover {
-      color: #b91c1c;
-    }
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .form-input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; }
+    .btn-primary { background-color: #4f46e5; color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; transition: background-color 0.3s; }
+    .btn-primary:hover { background-color: #4338ca; }
+    .card { background-color: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+    .btn-delete { margin-top: 0.5rem; color: #ef4444; font-size: 0.875rem; cursor: pointer; display: inline-block; }
+    .btn-delete:hover { color: #b91c1c; }
   </style>
 </head>
 
 <body class="p-6 md:p-12">
+
+  <!-- Loading -->
   <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50 hidden">
-    <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-      viewBox="0 0 24 24">
+    <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-      </path>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
   </div>
 
   <div class="max-w-4xl mx-auto space-y-8">
+    <!-- Riepilogo Saldi -->
     <div class="card text-center">
       <h1 class="text-3xl font-bold text-gray-800 mb-2">Gestione Spese Condivise</h1>
       <p class="text-gray-500">Traccia e bilancia le spese con facilità.</p>
     </div>
 
-    <!-- Riepilogo saldi -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-4">Riepilogo Saldi</h2>
       <div class="flex flex-col md:flex-row gap-4 justify-around text-center font-semibold">
@@ -85,14 +48,14 @@
           <p class="text-green-600 text-lg">Lisa</p>
           <p id="saldo-lisa" class="text-green-800 text-2xl mt-1">- €0.00</p>
         </div>
-      </div>
-      <div class="mt-4 text-center">
-        <p class="text-lg font-bold text-gray-700">Totale ancora da pagare:</p>
-        <p id="total-due-all" class="text-3xl font-bold text-red-600 mt-1">€0.00</p>
+	<div class="mt-4 text-center">
+ 	  <p class="text-lg font-bold text-gray-700">Totale ancora da pagare:</p>
+  	  <p id="total-due-all" class="text-3xl font-bold text-red-600 mt-1">€0.00</p>
+	</div>
       </div>
     </div>
 
-    <!-- Aggiungi Spesa -->
+    <!-- Form Aggiungi Spesa -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-6">Aggiungi Nuova Spesa</h2>
       <form id="expense-form" class="space-y-4">
@@ -112,7 +75,7 @@
       </form>
     </div>
 
-    <!-- Registra Pagamento -->
+    <!-- Form Registra Pagamento -->
     <div class="card">
       <h2 class="text-2xl font-semibold text-gray-700 mb-6">Registra Pagamento</h2>
       <form id="payment-form" class="space-y-4">
@@ -161,7 +124,7 @@
   <!-- Script Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, onSnapshot, query, doc, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAo40exxMQSGZcV8FgnF7XwrmDNDs-e1lY",
@@ -181,14 +144,14 @@
 
     const showLoading = () => document.getElementById('loading-spinner').classList.remove('hidden');
     const hideLoading = () => document.getElementById('loading-spinner').classList.add('hidden');
-    const showMessage = (text, type = 'success') => {
+    const showMessage = (text, type='success') => {
       const container = document.getElementById('message-container');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `p-4 mb-4 rounded-lg shadow-lg text-white ${type==='success'?'bg-green-500':'bg-red-500'} transition-transform transform translate-x-full`;
-      messageDiv.textContent = text;
-      container.appendChild(messageDiv);
-      setTimeout(()=>messageDiv.classList.remove('translate-x-full'),100);
-      setTimeout(()=>{messageDiv.classList.add('translate-x-full');setTimeout(()=>messageDiv.remove(),500);},5000);
+      const div = document.createElement('div');
+      div.className = `p-4 mb-4 rounded-lg shadow-lg text-white ${type==='success'?'bg-green-500':'bg-red-500'} transition-transform transform translate-x-full`;
+      div.textContent = text;
+      container.appendChild(div);
+      setTimeout(()=>div.classList.remove('translate-x-full'),100);
+      setTimeout(()=>{div.classList.add('translate-x-full'); setTimeout(()=>div.remove(),500)},5000);
     };
 
     const expenseForm = document.getElementById('expense-form');
@@ -202,156 +165,181 @@
     let expensesData = [];
     let paymentsData = [];
 
+    // Calcolo Saldi
     const calculateBalances = () => {
-      let totalSpentDiego=0, totalSpentLisa=0, totalDueDiego=0, totalDueLisa=0, totalRemaining=0;
-      expensesData.forEach(exp=>{
-        const half = exp.totale/2;
-        totalDueDiego+=half;
-        totalDueLisa+=half;
-        totalSpentDiego+=exp.pagatoDiego;
-        totalSpentLisa+=exp.pagatoLisa;
-        totalRemaining+=exp.residuo;
-      });
-      paymentsData.forEach(p=>{
-        if(p.payer==='Diego') totalSpentDiego+=p.amount;
-        else if(p.payer==='Lisa') totalSpentLisa+=p.amount;
-      });
-      document.getElementById('saldo-diego').textContent = `${totalSpentDiego-totalDueDiego>=0?'+':''} €${(totalSpentDiego-totalDueDiego).toFixed(2)}`;
-      document.getElementById('saldo-lisa').textContent = `${totalSpentLisa-totalDueLisa>=0?'+':''} €${(totalSpentLisa-totalDueLisa).toFixed(2)}`;
-      document.getElementById('total-due-all').textContent = `€${totalRemaining.toFixed(2)}`;
-    };
+  let totalDueDiego = 0, totalDueLisa = 0, totalPaidDiego = 0, totalPaidLisa = 0, totalRemaining = 0;
 
-    const updateExpensesList = () => {
+  expensesData.forEach(exp => {
+    const half = exp.totale/2;
+    totalDueDiego += half;
+    totalDueLisa += half;
+
+    // residuo per la spesa (somma pagata finora)
+    const paidForExpense = paymentsData
+      .filter(p => p.expenseId === exp.id)
+      .reduce((sum, p) => sum + p.amount, 0);
+    const residuo = exp.totale - paidForExpense;
+    totalRemaining += residuo;
+  });
+
+  paymentsData.forEach(p => {
+    if(p.payer==='Diego') totalPaidDiego += p.amount;
+    else if(p.payer==='Lisa') totalPaidLisa += p.amount;
+  });
+
+  const saldoDiego = totalPaidDiego - totalDueDiego;
+  const saldoLisa = totalPaidLisa - totalDueLisa;
+
+  const saldoDiegoEl = document.getElementById('saldo-diego');
+  const saldoLisaEl = document.getElementById('saldo-lisa');
+  const totalDueAllEl = document.getElementById('total-due-all');
+
+  saldoDiegoEl.textContent = `${saldoDiego>=0?'+':''} €${saldoDiego.toFixed(2)}`;
+  saldoDiegoEl.parentElement.classList.toggle('bg-red-100', saldoDiego<0);
+  saldoDiegoEl.parentElement.classList.toggle('bg-green-100', saldoDiego>=0);
+  saldoDiegoEl.classList.toggle('text-red-800', saldoDiego<0);
+  saldoDiegoEl.classList.toggle('text-green-800', saldoDiego>=0);
+
+  saldoLisaEl.textContent = `${saldoLisa>=0?'+':''} €${saldoLisa.toFixed(2)}`;
+  saldoLisaEl.parentElement.classList.toggle('bg-red-100', saldoLisa<0);
+  saldoLisaEl.parentElement.classList.toggle('bg-green-100', saldoLisa>=0);
+  saldoLisaEl.classList.toggle('text-red-800', saldoLisa<0);
+  saldoLisaEl.classList.toggle('text-green-800', saldoLisa>=0);
+
+  // Totale ancora da pagare
+  totalDueAllEl.textContent = `€${totalRemaining.toFixed(2)}`;
+  totalDueAllEl.classList.toggle('text-red-600', totalRemaining>0);
+  totalDueAllEl.classList.toggle('text-green-600', totalRemaining<=0);
+};
+
+
+    // Aggiorna UI
+    const updateUI = () => {
+      // Spese
       expensesList.innerHTML='';
       expensesData.forEach(exp=>{
-        const el=document.createElement('div');
-        el.className='p-6 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
-        el.innerHTML=`
+        const div = document.createElement('div');
+        div.className='p-6 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
+        div.innerHTML = `
           <div class="flex justify-between items-center mb-2">
             <h3 class="text-xl font-semibold text-gray-800">${exp.nome}</h3>
             <span class="text-lg font-bold text-gray-700">€${exp.totale.toFixed(2)}</span>
           </div>
-          <p class="text-sm text-gray-500 mb-4">${exp.note||'Nessuna nota'}</p>
-          <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-            <p>Pagato da Diego: <span class="font-medium text-green-700">€${exp.pagatoDiego.toFixed(2)}</span></p>
-            <p>Pagato da Lisa: <span class="font-medium text-green-700">€${exp.pagatoLisa.toFixed(2)}</span></p>
-            <p>Residuo: <span class="font-bold ${exp.residuo>0?'text-red-700':'text-green-700'}">€${exp.residuo.toFixed(2)}</span></p>
-          </div>
-          <button data-id="${exp.id}" class="btn-delete">🗑 Elimina Spesa</button>
+          <p class="text-sm text-gray-500 mb-2">${exp.note||'Nessuna nota'}</p>
+          <span class="btn-delete" data-id="${exp.id}" data-type="expense">Elimina</span>
         `;
-        expensesList.appendChild(el);
-        el.querySelector('button').addEventListener('click', async ()=>{
-          try{
-            await deleteDoc(doc(db,'spese',exp.id));
-            paymentsData.filter(p=>p.expenseId===exp.id).forEach(async p=>await deleteDoc(doc(db,'pagamenti',p.id)));
-            showMessage("Spesa eliminata!");
-          }catch(err){console.error(err); showMessage("Errore eliminazione","error");}
-        });
+        expensesList.appendChild(div);
       });
-    };
-
-    const updatePaymentsHistory = () => {
-      paymentsHistoryList.innerHTML='';
-      paymentsData.forEach(p=>{
-        const el=document.createElement('div');
-        el.className='p-4 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
-        el.innerHTML=`
-          <p class="text-base text-gray-800 font-medium">${p.payer} ha pagato €${p.amount.toFixed(2)}</p>
-          <p class="text-sm text-gray-600 mt-1">Spesa: ${p.expenseName}</p>
-          <p class="text-xs text-gray-500 mt-1">Data: ${p.operazioneData.toDate().toLocaleDateString()}</p>
-          <button data-id="${p.id}" class="btn-delete">🗑 Elimina Pagamento</button>
-        `;
-        paymentsHistoryList.appendChild(el);
-        el.querySelector('button').addEventListener('click', async ()=>{
-          try{
-            await deleteDoc(doc(db,'pagamenti',p.id));
-            const expense=expensesData.find(e=>e.id===p.expenseId);
-            if(expense){
-              const newDiego = p.payer==='Diego'?expense.pagatoDiego-p.amount:expense.pagatoDiego;
-              const newLisa = p.payer==='Lisa'?expense.pagatoLisa-p.amount:expense.pagatoLisa;
-              const residuo = expense.totale-(newDiego+newLisa);
-              await updateDoc(doc(db,'spese',expense.id),{pagatoDiego:newDiego,pagatoLisa:newLisa,residuo});
-            }
-            showMessage("Pagamento eliminato!");
-          }catch(err){console.error(err); showMessage("Errore eliminazione","error");}
-        });
-      });
-    };
-
-    const updatePaymentSelect = ()=>{
       paymentExpenseSelect.innerHTML='';
       expensesData.forEach(exp=>{
-        const option=document.createElement('option');
-        option.value=exp.id;
-        option.textContent=`${exp.nome} (€${exp.totale.toFixed(2)})`;
-        paymentExpenseSelect.appendChild(option);
+        const opt = document.createElement('option');
+        opt.value=exp.id;
+        opt.textContent=`${exp.nome} (€${exp.totale.toFixed(2)})`;
+        paymentExpenseSelect.appendChild(opt);
       });
-    };
+      noExpensesMessage.classList.toggle('hidden', expensesData.length>0);
 
-    const updateUI = ()=>{
-      updateExpensesList();
-      updatePaymentsHistory();
-      updatePaymentSelect();
+      // Pagamenti
+      paymentsHistoryList.innerHTML='';
+      paymentsData.forEach(p=>{
+        const div = document.createElement('div');
+        div.className='p-4 rounded-lg bg-gray-50 border border-gray-200 shadow-sm';
+        div.innerHTML = `
+          <p class="text-base text-gray-800 font-medium">${p.payer} ha pagato €${p.amount.toFixed(2)}</p>
+          <p class="text-sm text-gray-600 mt-1">Spesa: ${p.expenseName}</p>
+          <p class="text-xs text-gray-500 mt-1">Data: ${new Date(p.operazioneData).toLocaleDateString()}</p>
+          <span class="btn-delete" data-id="${p.id}" data-type="payment">Elimina</span>
+        `;
+        paymentsHistoryList.appendChild(div);
+      });
+      noPaymentsMessage.classList.toggle('hidden', paymentsData.length>0);
+
       calculateBalances();
-      noExpensesMessage.classList.toggle('hidden',expensesData.length>0);
-      noPaymentsMessage.classList.toggle('hidden',paymentsData.length>0);
     };
 
-    expenseForm.addEventListener('submit', async e=>{
+    // Aggiungi Spesa
+    expenseForm.addEventListener('submit', async(e)=>{
       e.preventDefault();
       showLoading();
       const nome=document.getElementById('expense-name').value;
       const totale=parseFloat(document.getElementById('expense-total').value);
       const note=document.getElementById('expense-notes').value;
-      try{
-        await addDoc(expensesCollection,{
-          nome,totale,note,pagatoDiego:0,pagatoLisa:0,residuo:totale,createdAt:Timestamp.now()
-        });
+      try {
+        await addDoc(expensesCollection,{nome,totale,note,createdAt:Date.now()});
         showMessage("Spesa registrata!");
         expenseForm.reset();
-      }catch(err){console.error(err); showMessage("Errore","error");}
-      finally{hideLoading();}
+      } catch(err) {
+        console.error(err);
+        showMessage("Errore registrando spesa",'error');
+      } finally { hideLoading(); }
     });
 
-    paymentForm.addEventListener('submit', async e=>{
+    // Aggiungi Pagamento
+    paymentForm.addEventListener('submit', async(e)=>{
       e.preventDefault();
       showLoading();
       const expenseId=document.getElementById('payment-expense').value;
       const payer=document.getElementById('payment-payer').value;
       const amount=parseFloat(document.getElementById('payment-amount').value);
-      const date=document.getElementById('payment-date').value;
-      if(!expenseId){showMessage("Seleziona spesa","error"); hideLoading(); return;}
-      const expense=expensesData.find(e=>e.id===expenseId);
-      if(!expense){showMessage("Spesa non trovata","error"); hideLoading(); return;}
-      const newDiego=payer==='Diego'?expense.pagatoDiego+amount:expense.pagatoDiego;
-      const newLisa=payer==='Lisa'?expense.pagatoLisa+amount:expense.pagatoLisa;
-      const residuo=expense.totale-(newDiego+newLisa);
-      try{
-        await updateDoc(doc(db,'spese',expenseId),{pagatoDiego:newDiego,pagatoLisa:newLisa,residuo});
+      const operazioneData=new Date(document.getElementById('payment-date').value).getTime();
+      const expense = expensesData.find(exp=>exp.id===expenseId);
+      if(!expense){ showMessage("Spesa non trovata",'error'); hideLoading(); return; }
+      try {
         await addDoc(paymentsCollection,{
-          expenseId,expenseName:expense.nome,payer,amount,
-          operazioneData:Timestamp.fromDate(new Date(date)),createdAt:Timestamp.now()
+          expenseId,
+          expenseName: expense.nome,
+          payer,
+          amount,
+          operazioneData,
+          createdAt: Date.now()
         });
         showMessage("Pagamento registrato!");
         paymentForm.reset();
-      }catch(err){console.error(err); showMessage("Errore","error");}
-      finally{hideLoading();}
+      } catch(err){
+        console.error(err);
+        showMessage("Errore registrando pagamento",'error');
+      } finally { hideLoading(); }
     });
 
-    onSnapshot(query(expensesCollection,orderBy("createdAt","desc")),snapshot=>{
-      expensesData=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+    // Elimina Spesa o Pagamento
+    document.body.addEventListener('click', async(e)=>{
+      if(e.target.classList.contains('btn-delete')){
+        const id=e.target.dataset.id;
+        const type=e.target.dataset.type;
+        if(!confirm("Confermi l'eliminazione?")) return;
+        showLoading();
+        try{
+          if(type==='expense'){
+            await deleteDoc(doc(db,'spese',id));
+            const relatedPayments = paymentsData.filter(p=>p.expenseId===id);
+            for(const p of relatedPayments){
+              await deleteDoc(doc(db,'pagamenti',p.id));
+            }
+          } else if(type==='payment'){
+            await deleteDoc(doc(db,'pagamenti',id));
+          }
+          showMessage("Eliminazione completata!");
+        } catch(err){
+          console.error(err);
+          showMessage("Errore eliminando",'error');
+        } finally{ hideLoading(); }
+      }
+    });
+
+    // Listener Firestore
+    onSnapshot(query(expensesCollection, orderBy('createdAt','desc')), snapshot=>{
+      expensesData = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+      updateUI();
+    });
+    onSnapshot(query(paymentsCollection, orderBy('operazioneData','desc')), snapshot=>{
+      paymentsData = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
       updateUI();
     });
 
-    onSnapshot(query(paymentsCollection,orderBy("operazioneData","desc")),snapshot=>{
-      paymentsData=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
-      updateUI();
-    });
   </script>
+
 </body>
-
 </html>
-
 
 
 
