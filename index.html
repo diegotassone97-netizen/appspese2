@@ -162,18 +162,18 @@
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, doc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
         // CONFIGURAZIONE DI FIREBASE
-        // Incolla qui le credenziali che hai copiato dalla console Firebase
+        // Utilizza le credenziali fornite dall'utente
         const firebaseConfig = {
-            apiKey: "AIzaSyC0PYWHsxKpAUWJbBQK-PFxwE6izHO3hro",
-            authDomain: "gestionespesecondivise.firebaseapp.com",
-            projectId: "gestionespesecondivise",
-            storageBucket: "gestionespesecondivise.firebasestorage.app",
-            messagingSenderId: "355906917816",
-            appId: "1:355906917816:web:be67cebc9279685ffa2b4d",
-            measurementId: "G-BF3HJ1SNY1"
+            apiKey: "AIzaSyAo40exxMQSGZcV8FgnF7XwrmDNDs-e1lY",
+            authDomain: "appspese2.firebaseapp.com",
+            projectId: "appspese2",
+            storageBucket: "appspese2.firebasestorage.app",
+            messagingSenderId: "20924314267",
+            appId: "1:20924314267:web:500dc7f170ce0b68e24c3e",
+            measurementId: "G-J677Z3X6QY"
         };
-
-
+        const appId = "1:20924314267:web:500dc7f170ce0b68e24c3e";
+        
         // Inizializza Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -439,6 +439,8 @@
 </body>
 
 </html>
+
+
 
 
 
